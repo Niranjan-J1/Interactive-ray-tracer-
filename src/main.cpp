@@ -3,8 +3,19 @@
 #include <cstdint>
 #include <iostream>
 
+#include "rtweekend.hpp"
+#include "camera.hpp"
+#include "ray.hpp"
+#include "vec.hpp"
+#include "color.hpp"
+#include "hittable_list.hpp"
+#include "sphere.hpp"
+#include "material.hpp"
+
+
 const int WIDTH  = 800;
 const int HEIGHT = 600;
+const int max_depth = 10;
 
 int main(int argc, char* argv[])
 {
@@ -66,6 +77,31 @@ int main(int argc, char* argv[])
 
     bool running = true;
 
+    //Creating the scene 
+
+    hittable_list world;
+
+    auto ground_material = make_shared<lambertian>(color(0.8,0.8,0.0));
+    auto center_material = make_shared<lambertian>(color(0.1,0.2,0.5));
+
+    world.add(make_shared<sphere>(point3(0.0, -100.5, -1.0), 100, ground_material));
+    world.add(make_shared<sphere>(point3(0.0, 0.0, -1.0), 0.5, center_material));
+
+    camera cam;
+    cam.aspect_ratio = 16.0/9.0;
+    cam.image_width = WIDTH;
+    cam.samples_per_pixel = 1;
+    cam.max_depth = 50;
+
+
+    cam.vfov = 90;
+    cam.lookat = point3(0,0,-1);
+    cam.lookfrom = point3(-2,2,1);
+    cam.vup = vec3(0,1,0);
+
+    cam.prepare();
+
+
     // 6. Main loop
     while (running) {
 
@@ -80,14 +116,10 @@ int main(int argc, char* argv[])
         // --- Render into CPU framebuffer ---
         for (int y = 0; y < HEIGHT; ++y) {
             for (int x = 0; x < WIDTH; ++x) {
-
-                uint8_t r = static_cast<uint8_t>(255.0 * x / WIDTH);
-                uint8_t g = static_cast<uint8_t>(255.0 * y / HEIGHT);
-                uint8_t b = 0;
-                uint8_t a = 255;
-
-                framebuffer[y * WIDTH + x] =
-                    (r << 24) | (g << 16) | (b << 8) | a;
+                ray r = cam.get_ray(x, y);
+                color pixel_color = cam.ray_color(r, cam.max_depth, world);
+                pixel_color *= cam.pixel_samples_scale;
+                framebuffer[y*WIDTH + x] = pack_color(pixel_color);
             }
         }
 
