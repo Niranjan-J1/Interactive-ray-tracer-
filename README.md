@@ -79,7 +79,7 @@ sphere.hpp               → Sphere geometry
 material.hpp             → Material definitions (e.g., Lambertian)
 rtweekend.hpp            → Utility functions (math, random, constants)
 ```
-###7. Future Improvements
+### 7. Future Improvements
 GPU acceleration for faster rendering
 
 More complex materials (metal, dielectric, etc.)
